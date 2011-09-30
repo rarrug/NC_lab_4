@@ -7,6 +7,7 @@ public class DAOFactory {
 
     /* database factory type */
     private static final int DB_MODEL = 1; 
+
     /* current model */
     private static IModel currentModel;
 
