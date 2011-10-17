@@ -1,5 +1,8 @@
 package ttracker.ejb.task;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import ttracker.dao.SQLConsts;
 import java.rmi.RemoteException;
 import java.sql.Connection;
@@ -109,29 +112,32 @@ public class TaskBean implements EntityBean {
      */
     public Collection ejbFindAll(boolean hier) throws FinderException {
 //        System.out.println("ejbFindAll()");
-        Collection list = null;
+        Connection con = null;
+        PreparedStatement st = null;
+        ResultSet rs = null;
         try {
-            Connection con = getConnection();
-
-            list = new ArrayList();
-            PreparedStatement st = null;
+            con = getConnection();
             if (hier) {
                 st = con.prepareStatement(SQLConsts.GET_TASK_HIERARCHY);
             } else {
                 st = con.prepareStatement(SQLConsts.GET_TASK_KEYS);
             }
-            ResultSet rs = st.executeQuery();
+            rs = st.executeQuery();
+            Collection list = new ArrayList();
             while (rs.next()) {
                 list.add(new Integer(rs.getInt("id_task")));
             }
-            st.close();
-            st = null;
-
-            releaseConnection(con);
+            return list;
         } catch (SQLException ex) {
             throw new FinderException("No task was found: " + ex.getMessage());
+        } finally {
+            //free connection resources
+            try {
+                releaseConnection(rs, st, con);
+            } catch (SQLException ex) {
+                throw new FinderException("No task was found. Cannot free resources: " + ex.getMessage());
+            }
         }
-        return list;
     }
 
     /**
@@ -141,29 +147,30 @@ public class TaskBean implements EntityBean {
      * @throws FinderException Cannot find task
      */
     public Integer ejbFindByPrimaryKey(Integer id) throws FinderException {
-//        System.out.println("ejbFindByPrimaryKey()");
+        System.out.println("ejbFindByPrimaryKey()");
+        Connection con = null;
+        PreparedStatement st = null;
+        ResultSet rs = null;
         try {
-            Connection con = getConnection();
-
-            boolean rowExists = false;
-            PreparedStatement st = con.prepareStatement(SQLConsts.EXISTS_TASK);
+            con = getConnection();
+            st = con.prepareStatement(SQLConsts.EXISTS_TASK);
             st.setInt(1, id.intValue());
-            ResultSet rs = st.executeQuery();
-            if (rs.next()) {
-                rowExists = true;
-            }
-            st.close();
-            st = null;
-
-            releaseConnection(con);
-            if (!rowExists) {
+            rs = st.executeQuery();
+            if (!rs.next()) {
                 throw new FinderException("No task was found. Id = " + id);
             }
+            this.id = id;
+            return id;
         } catch (SQLException e) {
             throw new FinderException("SQL error while getting task: " + e);
+        } finally {
+            //free connection resources
+            try {
+                releaseConnection(rs, st, con);
+            } catch (SQLException ex) {
+                throw new FinderException("No task was found. Cannot free resources: " + ex.getMessage());
+            }
         }
-        this.id = id;
-        return id;
     }
 
     /**
@@ -174,23 +181,29 @@ public class TaskBean implements EntityBean {
      * @throws FinderException Cannot find tasks
      */
     private Collection findByParameter(String param, String sql) throws FinderException {
-        Collection list = null;
+        Connection con = null;
+        PreparedStatement st = null;
+        ResultSet rs = null;
         try {
-            Connection con = getConnection();
-            PreparedStatement st = con.prepareStatement(sql);
+            con = getConnection();
+            st = con.prepareStatement(sql);
             st.setString(1, param);
-            ResultSet rs = st.executeQuery();
-            list = new ArrayList();
+            rs = st.executeQuery();
+            Collection list = new ArrayList();
             while (rs.next()) {
                 list.add(new Integer(rs.getInt("id_task")));
             }
-            st.close();
-            st = null;
-            releaseConnection(con);
+            return list;
         } catch (SQLException ex) {
             throw new FinderException("No task was found: " + ex.getMessage());
+        } finally {
+            //free connection resources
+            try {
+                releaseConnection(rs, st, con);
+            } catch (SQLException ex) {
+                throw new FinderException("No task was found. Cannot free resources: " + ex.getMessage());
+            }
         }
-        return list;
     }
 
     /**
@@ -223,40 +236,48 @@ public class TaskBean implements EntityBean {
      * @throws RemoteException 
      */
     public Integer ejbCreate(TaskRecord newTask) throws CreateException, RemoteException {
+        System.out.println("ejbCreate");
         Connection con = null;
-        Integer taskId = null;
+        PreparedStatement st = null;
+        ResultSet rs = null;
         try {
             con = getConnection();
-            PreparedStatement statement = con.prepareStatement(SQLConsts.INSERT_TASK);
-            statement.setString(1, newTask.getName());
+            st = con.prepareStatement(SQLConsts.INSERT_TASK);
+            st.setString(1, newTask.getName());
             if (newTask.getParentId().compareTo(Integer.valueOf(0)) == 0) {
-                statement.setNull(2, java.sql.Types.INTEGER);
+                st.setNull(2, java.sql.Types.INTEGER);
             } else {
-                statement.setInt(2, newTask.getParentId());
+                st.setInt(2, newTask.getParentId());
             }
-            statement.setString(3, newTask.getEmp().getEmpName());
-            statement.setString(4, new SimpleDateFormat("yyyy-MM-dd").format(newTask.getBegin()));
-            statement.setString(5, new SimpleDateFormat("yyyy-MM-dd").format(newTask.getEnd()));
-            statement.setString(6, newTask.getStatus());
-            statement.setString(7, newTask.getDescription());
-            statement.executeQuery();
-            statement = con.prepareStatement(SQLConsts.GET_TASK_ID_BY_NAME);
-            statement.setString(1, newTask.getName());
-            ResultSet rs = statement.executeQuery();
+            st.setString(3, newTask.getEmp().getEmpName());
+            st.setString(4, new SimpleDateFormat("yyyy-MM-dd").format(newTask.getBegin()));
+            st.setString(5, new SimpleDateFormat("yyyy-MM-dd").format(newTask.getEnd()));
+            st.setString(6, newTask.getStatus());
+            st.setString(7, newTask.getDescription());
+            st.executeQuery();
+            st = con.prepareStatement(SQLConsts.GET_TASK_ID_BY_NAME);
+            st.setString(1, newTask.getName());
+            rs = st.executeQuery();
+            Integer taskId = null;
             if (rs.next()) {
                 taskId = Integer.valueOf(rs.getInt("id_task"));
             }
-            statement.close();
-            statement = null;
-            releaseConnection(con);
+            return taskId;
         } catch (SQLException ex) {
-            throw new CreateException(ex.getMessage());
+            throw new CreateException("Cannot create task: " + ex.getMessage());
+        } finally {
+            //free connection resources
+            try {
+                releaseConnection(rs, st, con);
+            } catch (SQLException ex) {
+                throw new CreateException("Cannot create task. Cannot free resources: " + ex.getMessage());
+            }
         }
-        return taskId;
     }
 
     public void ejbPostCreate(TaskRecord task)
             throws CreateException {
+//        System.out.println("ejbPostCreate");
     }
 
     /**
@@ -265,47 +286,59 @@ public class TaskBean implements EntityBean {
      * @throws RemoteException 
      */
     public void ejbHomeModify(TaskRecord task) throws RemoteException {
-        //System.out.println("ejbHomeModify()");
+//        System.out.println("ejbHomeModify()");
+        Connection con = null;
+        PreparedStatement st = null;
         try {
-            Connection con = getConnection();
-            PreparedStatement statement = con.prepareStatement(SQLConsts.UPDATE_TASK);
-            statement.setString(1, task.getName());
+            con = getConnection();
+            st = con.prepareStatement(SQLConsts.UPDATE_TASK);
+            st.setString(1, task.getName());
             if (task.getParentId() == 0) {
-                statement.setNull(2, java.sql.Types.INTEGER);
+                st.setNull(2, java.sql.Types.INTEGER);
             } else {
-                statement.setInt(2, task.getParentId());
+                st.setInt(2, task.getParentId());
             }
-            statement.setString(3, task.getEmp().getEmpName());
-            statement.setString(4, new SimpleDateFormat("yyyy-MM-dd").format(task.getBegin()));
-            statement.setString(5, new SimpleDateFormat("yyyy-MM-dd").format(task.getEnd()));
-            statement.setString(6, task.getStatus());
-            statement.setString(7, task.getDescription());
-            statement.setInt(8, task.getId());
-            statement.executeQuery();
-            statement.close();
-            statement = null;
-            releaseConnection(con);
+            st.setString(3, task.getEmp().getEmpName());
+            st.setString(4, new SimpleDateFormat("yyyy-MM-dd").format(task.getBegin()));
+            st.setString(5, new SimpleDateFormat("yyyy-MM-dd").format(task.getEnd()));
+            st.setString(6, task.getStatus());
+            st.setString(7, task.getDescription());
+            st.setInt(8, task.getId());
+
+            //st.executeQuery();
+            st.execute();
         } catch (SQLException ex) {
-            throw new RemoteException(ex.getMessage());
+            throw new RemoteException("Cannot modify task: " + ex.getMessage());
+        } finally {
+            //free connection resources
+            try {
+                releaseConnection(null, st, con);
+            } catch (SQLException ex) {
+                throw new RemoteException("Cannot modify task. Cannot free resources: " + ex.getMessage());
+            }
         }
     }
 
     public void ejbStore() throws EJBException, RemoteException {
-//        System.out.println("ejbStore()");
+        System.out.println("ejbStore()");
+        //TODO ejbStore TaskBen
+        //do not use. nothing update 
     }
 
     public void ejbLoad() throws EJBException, RemoteException {
-//        System.out.println("ejbLoad()");
-        this.id = (Integer) context.getPrimaryKey();
+        System.out.println("ejbLoad()");
+        Connection con = null;
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        //this.id = (Integer) context.getPrimaryKey();
         try {
-            Connection con = getConnection();
-            PreparedStatement st = con.prepareStatement(SQLConsts.SELECT_TASK_BY_ID);
+            con = getConnection();
+            st = con.prepareStatement(SQLConsts.SELECT_TASK_BY_ID);
             st.setInt(1, this.id.intValue());
-            ResultSet rs = st.executeQuery();
+            rs = st.executeQuery();
             if (!rs.next()) {
-                throw new NoSuchEntityException("In selectRow: Row does not exist");
+                throw new NoSuchEntityException("Task does not exist");
             }
-
             this.name = rs.getString("task_name");
             this.parentId = new Integer(rs.getInt("parent_task"));
             this.begin = rs.getDate("date_begin");
@@ -314,22 +347,28 @@ public class TaskBean implements EntityBean {
             this.employee = new EmpRecord(rs.getInt("id_emp"), rs.getString("emp_fio"), rs.getString("job"),
                     new DeptRecord(rs.getInt("id_dept"), rs.getString("dept_name")));
             this.description = rs.getString("descr");
-
-            st.close();
-            st = null;
-
-            releaseConnection(con);
         } catch (SQLException ex) {
-            throw new RemoteException(ex.getMessage());
+            throw new RemoteException("Cannot load task: " + ex.getMessage());
+        } finally {
+            //free connection resources
+            try {
+                releaseConnection(rs, st, con);
+            } catch (SQLException ex) {
+                throw new RemoteException("Cannot load task. Cannot free resources: " + ex.getMessage());
+            }
         }
     }
 
     public void ejbActivate() throws EJBException, RemoteException {
-//        System.out.println("ejbActivate()");
+        System.out.println("ejbActivate()");
+        //TODO ejbActivate TaskBen
+        this.id = (Integer) context.getPrimaryKey();
     }
 
     public void ejbPassivate() throws EJBException, RemoteException {
-//        System.out.println("ejbPassivate()");
+        System.out.println("ejbPassivate()");
+        //TODO ejbPassivate TaskBen
+        id = null;
     }
 
     /**
@@ -339,25 +378,36 @@ public class TaskBean implements EntityBean {
      * @throws RemoteException 
      */
     public void ejbRemove() throws RemoveException, EJBException, RemoteException {
+//        System.out.println("ejbRemove");
+        Connection con = null;
+        PreparedStatement st = null;
         try {
-            Connection con = getConnection();
-            PreparedStatement st = con.prepareStatement(SQLConsts.DELETE_TASK);
+            con = getConnection();
+            st = con.prepareStatement(SQLConsts.DELETE_TASK);
             st.setInt(1, this.id.intValue());
-            st.executeQuery();
-            st.close();
-            st = null;
-            releaseConnection(con);
+            
+            //st.executeQuery();
+            st.execute();
         } catch (SQLException ex) {
-            throw new RemoveException(ex.getMessage());
+            throw new RemoveException("Cannot remove task: " + ex.getMessage());
+        } finally {
+            //free connection resources
+            try {
+                releaseConnection(null, st, con);
+            } catch (SQLException ex) {
+                throw new RemoteException("Cannot remove task. Cannot free resources: " + ex.getMessage());
+            }
         }
     }
 
     public void setEntityContext(EntityContext context) throws EJBException,
             RemoteException {
+//        System.out.println("setEntityContext");
         this.context = context;
     }
 
     public void unsetEntityContext() throws EJBException, RemoteException {
+//        System.out.println("unsetEntityContext");
         context = null;
     }
 
@@ -365,15 +415,8 @@ public class TaskBean implements EntityBean {
      * Create connection with database
      * @return Created connection
      */
-    private Connection getConnection() {
-        Connection conn = null;
-        try {
-            DataSource ds = (DataSource) context.lookup(SQLConsts.DB_NAME);
-            conn = ds.getConnection();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return conn;
+    private Connection getConnection() throws SQLException {
+        return ((DataSource) context.lookup(SQLConsts.DB_NAME)).getConnection();
     }
 
     /**
@@ -381,9 +424,34 @@ public class TaskBean implements EntityBean {
      * @param con Connection for free
      * @throws SQLException 
      */
-    private void releaseConnection(Connection con) throws SQLException {
+    private void releaseConnection(ResultSet rs, PreparedStatement ps, Connection con) throws SQLException {
+        if (rs != null) {
+            rs.close();
+        }
+        if (ps != null) {
+            ps.close();
+        }
         if (con != null) {
             con.close();
         }
     }
+
+    /*public void writeLog(String message) {
+        BufferedWriter outStream = null;
+        try {
+            String fileName = "d:\\taskBean.log";
+            outStream = new BufferedWriter(new FileWriter(fileName));
+            outStream.write(message);
+        } catch (IOException io) {
+            io.printStackTrace();
+        } finally {
+            if (outStream != null) {
+                try {
+                    outStream.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }*/
 }
