@@ -1,28 +1,20 @@
 package controller;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 import ttracker.dao.DAOFactory;
-import ttracker.ejb.task.Task;
 import ttracker.dao.exc.TrackerException;
 
 /**
  * Generate task list by request
  */
 public class ShowTask extends SomeAction {
-
-    /* Current index in user list  */
-    private static int index;
-    /* Save string with hierarchical list */
-    private static StringBuffer listBuilder;
 
     /* Logger */
     private static final Logger logger = Logger.getLogger(ShowTask.class);
