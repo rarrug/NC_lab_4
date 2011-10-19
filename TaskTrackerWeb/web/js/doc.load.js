@@ -23,7 +23,7 @@ $(document).ready(function(){
             
     $(function() {		
         $("#tablesorter").tablesorter({
-            sortList:[[0,0]], 
+            sortList:[[1,0]],
             widgets: ['zebra']
         });
     });

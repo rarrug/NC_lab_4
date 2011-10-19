@@ -1,5 +1,6 @@
 package controller;
 
+import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -26,6 +27,8 @@ public class RemoveTask extends SomeAction {
             /* remove task by id from database */
             DAOFactory.getInstance().deleteTask(id);
             setNotifyMessage(session, logger, SUCCESS_MESS, null, "Task succesfully removed!", null);
+        } catch (NamingException ex) {
+            setNotifyMessage(session, logger, FAIL_MESS, "Remove action", "Cannot get database instance: " + ex.getMessage(), ex);
         } catch (TrackerException ex) {
             setNotifyMessage(session, logger, FAIL_MESS, "Remove action", "Cannot remove task: " + ex.getMessage(), ex);
         }

@@ -4,11 +4,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 import ttracker.dao.DAOFactory;
+import ttracker.dao.Info;
 import ttracker.dao.exc.TrackerException;
 
 /**
@@ -38,19 +40,19 @@ public class ShowTask extends SomeAction {
 
                 if (AppProperties.getProperty("hierarchical_value").equals(findParameter)) {/* generate hierarchical list */
                     logger.info("HIERARCHICAL SEARCH");
-                    Collection hierResultList = DAOFactory.getInstance().getAllTasks(true);
+                    Collection<Info> hierResultList = DAOFactory.getInstance().getAllTasks(true);
                     session.setAttribute("hierResultList", hierResultList);
                     session.setAttribute("hierarchy", "1");
                 } else { /* search */
-                    Collection taskList = null;
+                    Collection<Info> taskList = null;
                     if ("by_id".equals(findParameter)) {/* by id */
                         logger.info("FIND BY ID");
-                        taskList = new ArrayList();
+                        taskList = new ArrayList<Info>();
                         try {
                             Integer id = new Integer(findValue);
                             taskList.add(DAOFactory.getInstance().getTaskById(id));
                         } catch (NumberFormatException nfe) {
-                            throw new TrackerException(nfe.getMessage());
+                            throw new TrackerException("Wrong search criteries", nfe);
                         }
                     } else if ("by_name".equals(findParameter)) {/* by name */
                         logger.info("FIND BY NAME");
@@ -70,6 +72,8 @@ public class ShowTask extends SomeAction {
                 session.setAttribute("today", new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
             }
 
+        } catch (NamingException ne) {
+            setNotifyMessage(session, logger, FAIL_MESS, "Show exception", ne.getMessage(), ne);
         } catch (TrackerException ex) {
             setNotifyMessage(session, logger, FAIL_MESS, "Show exception", ex.getMessage(), ex);
         }

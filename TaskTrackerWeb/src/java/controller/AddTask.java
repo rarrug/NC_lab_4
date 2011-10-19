@@ -3,6 +3,7 @@ package controller;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -45,6 +46,8 @@ public class AddTask extends SomeAction {
             DAOFactory.getInstance().addTask(task);
             setNotifyMessage(session, logger, SUCCESS_MESS, null, "Task added sucessfully!", null);
 
+        } catch (NamingException ex) {
+            setNotifyMessage(session, logger, FAIL_MESS, "Add exception", "Cannot get database instance: " + ex.getMessage(), ex);
         } catch (ParseException ex) {
             setNotifyMessage(session, logger, FAIL_MESS, "Add exception", "Incorrect input data. Reason: " + ex.getMessage(), ex);
         } catch (TrackerException ex) {

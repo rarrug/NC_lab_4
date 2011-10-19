@@ -1,3 +1,4 @@
+<%@page import="ttracker.dao.Info"%>
 <%@page import="java.io.IOException"%>
 <%@page import="ttracker.ejb.task.Task"%>
 <%@page import="java.util.List"%>
@@ -12,19 +13,19 @@
      * @param out Out page stream
      * @param taskList User list
      */
-    public static String buildHirerachicalStructure(List<Task> taskList) {
+    public static String buildHirerachicalStructure(List<Info> taskList) {
         String listAfterReplace = null;
         index = -1;
         listBuilder = new StringBuffer();
 
         try {
             listBuilder.append("<ul class=\"simpleTree\">\n").
-                    append("<li class=\"root\" id='").append(index + 2).
+                    append("<li class=\"root\" id='").append("1").
                     append("'>ROOT\n").append("<ul>\n");
 
             while (index < taskList.size() - 1) {
                 index++;
-                printHierarchyNode((Task) taskList.get(index), taskList, "");
+                printHierarchyNode(taskList.get(index), taskList, "");
             }
 
             listBuilder.append("</ul>\n</li>\n</ul>\n");
@@ -41,7 +42,7 @@
      * @param list User list
      * @param s Some charaters
      */
-    public static void printHierarchyNode(Task task, List<Task> list, String s) throws IOException {
+    public static void printHierarchyNode(Info taskInfo, List<Info> list, String s) throws IOException {
         boolean flag = true;
         if (index != 0) {
             listBuilder.append((s + "<ul>\n"));
@@ -52,13 +53,14 @@
                 if (index == 0) {
                     classOpen = " class=\"open\"";
                 }
-                String descr = task.getDescription();
+                String descr = taskInfo.getTask().getDescription();
                 if (descr == null) {
                     descr = "&lt;empty desrc&gt;";
                 } else if (descr.length() > 30) {
                     descr = descr.substring(0, 30) + "...";
                 }
-                String item = (s + "<li id=\'" + (index + 2) + "\'" + classOpen + "><span>" + task.getId() + " - " + task.getName()
+                String item = (s + "<li id=\'" + (index + 2) + "\'" + classOpen
+                        + "><span>" + taskInfo.getTask().getId() + " - " + taskInfo.getTask().getName()
                         + " - " + descr + "</span>");
                 listBuilder.append(item).append("\n");
                 flag = false;
@@ -66,8 +68,8 @@
             if (index >= list.size() - 1) {
                 break;
             }
-            Task child = (Task) list.get(index + 1);
-            if (child != null && task.getId().compareTo(child.getParentId()) == 0) {
+            Info child = (Info) list.get(index + 1);
+            if (child != null && taskInfo.getTask().getId().compareTo(child.getTask().getParentId()) == 0) {
                 index++;
                 printHierarchyNode(child, list, "");
             } else {
@@ -82,6 +84,6 @@
 %>
 
 <%
-            out.println(buildHirerachicalStructure((List<Task>) session.getAttribute("hierResultList")));
+            out.println(buildHirerachicalStructure((List<Info>) session.getAttribute("hierResultList")));
             session.setAttribute("hierarchy", null);
 %>

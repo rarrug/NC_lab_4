@@ -14,16 +14,16 @@
             <div class="add-block-label">Parent:</div>
             <select name="taskParent">
                 <option value="0">no</option>
-                <c:forEach items="${taskList}" var="parentTask">
-                    <option value="${parentTask.id}">${parentTask.name}</option>
+                <c:forEach items="${taskList}" var="parentInfo">
+                    <option value="${parentInfo.task.id}">${parentInfo.task.name}</option>
                 </c:forEach>
             </select>
 
             <br style="float:none;"/>
             <div class="add-block-label">User:</div>
             <select name="taskUser">
-                <c:forEach items="${userList}" var="user">
-                    <option value="${user.name}">${user.name}</option>
+                <c:forEach items="${userList}" var="userInfo">
+                    <option value="${userInfo.emp.name}">${userInfo.emp.name}</option>
                 </c:forEach>
             </select>
 
