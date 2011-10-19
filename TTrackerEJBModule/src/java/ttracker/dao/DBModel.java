@@ -129,9 +129,21 @@ public class DBModel implements IModel {
         Dept dept = deptHome.findByPrimaryKey(emp.getDeptId());
 
         Info taskValue = new Info();
-        taskValue.setTask(task);
-        taskValue.setEmp(emp);
-        taskValue.setDept(dept);
+
+        taskValue.setTaskId(task.getId());
+        taskValue.setTaskName(task.getName());
+        taskValue.setTaskParentId(task.getParentId());
+        taskValue.setTaskBegin(task.getBegin());
+        taskValue.setTaskEnd(task.getEnd());
+        taskValue.setTaskStatus(task.getStatus());
+        taskValue.setTaskDescription(task.getDescription());
+
+        taskValue.setEmpId(emp.getId());
+        taskValue.setEmpName(emp.getName());
+        taskValue.setEmpJob(emp.getJob());
+
+        taskValue.setDeptId(dept.getId());
+        taskValue.setDeptName(dept.getName());
 
         return taskValue;
     }
@@ -147,8 +159,13 @@ public class DBModel implements IModel {
         Dept dept = deptHome.findByPrimaryKey(emp.getDeptId());
 
         Info taskValue = new Info();
-        taskValue.setEmp(emp);
-        taskValue.setDept(dept);
+        
+        taskValue.setEmpId(emp.getId());
+        taskValue.setEmpName(emp.getName());
+        taskValue.setEmpJob(emp.getJob());
+
+        taskValue.setDeptId(dept.getId());
+        taskValue.setDeptName(dept.getName());
 
         return taskValue;
     }
