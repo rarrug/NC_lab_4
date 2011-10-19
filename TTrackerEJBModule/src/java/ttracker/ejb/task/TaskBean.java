@@ -1,8 +1,5 @@
 package ttracker.ejb.task;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import ttracker.dao.SQLConsts;
 import java.rmi.RemoteException;
 import java.sql.Connection;
@@ -21,8 +18,6 @@ import javax.ejb.FinderException;
 import javax.ejb.NoSuchEntityException;
 import javax.ejb.RemoveException;
 import javax.sql.DataSource;
-import ttracker.ejb.dept.DeptRecord;
-import ttracker.ejb.emp.EmpRecord;
 
 /**
  * Task bean implementation.
@@ -38,7 +33,15 @@ public class TaskBean implements EntityBean {
     private Date end;
     private String status;
     private String description;
-    private EmpRecord employee;
+    private Integer empId;
+
+    public Integer getEmpId() {
+        return empId;
+    }
+
+    public void setEmpId(Integer empId) {
+        this.empId = empId;
+    }
 
     public Integer getId() {
         return id;
@@ -54,14 +57,6 @@ public class TaskBean implements EntityBean {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getDeptName() {
-        return employee.getDept().getDeptName();
-    }
-
-    public String getEmp() {
-        return employee.getEmpName();
     }
 
     public String getDescription() {
@@ -110,7 +105,7 @@ public class TaskBean implements EntityBean {
      * @return List of task keys
      * @throws FinderException Cannot find tasks
      */
-    public Collection ejbFindAll(boolean hier) throws FinderException {
+    public Collection<Integer> ejbFindAll(boolean hier) throws FinderException {
 //        System.out.println("ejbFindAll()");
         Connection con = null;
         PreparedStatement st = null;
@@ -147,7 +142,7 @@ public class TaskBean implements EntityBean {
      * @throws FinderException Cannot find task
      */
     public Integer ejbFindByPrimaryKey(Integer id) throws FinderException {
-        System.out.println("ejbFindByPrimaryKey()");
+//        System.out.println("ejbFindByPrimaryKey()");
         Connection con = null;
         PreparedStatement st = null;
         ResultSet rs = null;
@@ -236,7 +231,7 @@ public class TaskBean implements EntityBean {
      * @throws RemoteException 
      */
     public Integer ejbCreate(TaskRecord newTask) throws CreateException, RemoteException {
-        System.out.println("ejbCreate");
+//        System.out.println("ejbCreate");
         Connection con = null;
         PreparedStatement st = null;
         ResultSet rs = null;
@@ -258,11 +253,10 @@ public class TaskBean implements EntityBean {
             st = con.prepareStatement(SQLConsts.GET_TASK_ID_BY_NAME);
             st.setString(1, newTask.getName());
             rs = st.executeQuery();
-            Integer taskId = null;
             if (rs.next()) {
-                taskId = Integer.valueOf(rs.getInt("id_task"));
+                id = Integer.valueOf(rs.getInt("id_task"));
             }
-            return taskId;
+            return id;
         } catch (SQLException ex) {
             throw new CreateException("Cannot create task: " + ex.getMessage());
         } finally {
@@ -308,29 +302,28 @@ public class TaskBean implements EntityBean {
             //st.executeQuery();
             st.execute();
         } catch (SQLException ex) {
-            throw new RemoteException("Cannot modify task: " + ex.getMessage());
+            throw new RemoteException("Cannot modify task", ex);
         } finally {
             //free connection resources
             try {
                 releaseConnection(null, st, con);
             } catch (SQLException ex) {
-                throw new RemoteException("Cannot modify task. Cannot free resources: " + ex.getMessage());
+                throw new RemoteException("Cannot modify task. Cannot free resources", ex);
             }
         }
     }
 
     public void ejbStore() throws EJBException, RemoteException {
-        System.out.println("ejbStore()");
+//        System.out.println("ejbStore()");
         //TODO ejbStore TaskBen
         //do not use. nothing update 
     }
 
     public void ejbLoad() throws EJBException, RemoteException {
-        System.out.println("ejbLoad()");
+//        System.out.println("ejbLoad()");
         Connection con = null;
         PreparedStatement st = null;
         ResultSet rs = null;
-        //this.id = (Integer) context.getPrimaryKey();
         try {
             con = getConnection();
             st = con.prepareStatement(SQLConsts.SELECT_TASK_BY_ID);
@@ -344,30 +337,27 @@ public class TaskBean implements EntityBean {
             this.begin = rs.getDate("date_begin");
             this.end = rs.getDate("date_end");
             this.status = rs.getString("status");
-            this.employee = new EmpRecord(rs.getInt("id_emp"), rs.getString("emp_fio"), rs.getString("job"),
-                    new DeptRecord(rs.getInt("id_dept"), rs.getString("dept_name")));
+            this.empId = rs.getInt("id_emp");
             this.description = rs.getString("descr");
         } catch (SQLException ex) {
-            throw new RemoteException("Cannot load task: " + ex.getMessage());
+            throw new RemoteException("Cannot load task", ex);
         } finally {
             //free connection resources
             try {
                 releaseConnection(rs, st, con);
             } catch (SQLException ex) {
-                throw new RemoteException("Cannot load task. Cannot free resources: " + ex.getMessage());
+                throw new RemoteException("Cannot load task. Cannot free resources", ex);
             }
         }
     }
 
     public void ejbActivate() throws EJBException, RemoteException {
-        System.out.println("ejbActivate()");
-        //TODO ejbActivate TaskBen
+//        System.out.println("ejbActivate()");
         this.id = (Integer) context.getPrimaryKey();
     }
 
     public void ejbPassivate() throws EJBException, RemoteException {
-        System.out.println("ejbPassivate()");
-        //TODO ejbPassivate TaskBen
+//        System.out.println("ejbPassivate()");
         id = null;
     }
 
@@ -385,8 +375,6 @@ public class TaskBean implements EntityBean {
             con = getConnection();
             st = con.prepareStatement(SQLConsts.DELETE_TASK);
             st.setInt(1, this.id.intValue());
-            
-            //st.executeQuery();
             st.execute();
         } catch (SQLException ex) {
             throw new RemoveException("Cannot remove task: " + ex.getMessage());
@@ -395,7 +383,7 @@ public class TaskBean implements EntityBean {
             try {
                 releaseConnection(null, st, con);
             } catch (SQLException ex) {
-                throw new RemoteException("Cannot remove task. Cannot free resources: " + ex.getMessage());
+                throw new RemoteException("Cannot remove task. Cannot free resources", ex);
             }
         }
     }
@@ -435,23 +423,4 @@ public class TaskBean implements EntityBean {
             con.close();
         }
     }
-
-    /*public void writeLog(String message) {
-        BufferedWriter outStream = null;
-        try {
-            String fileName = "d:\\taskBean.log";
-            outStream = new BufferedWriter(new FileWriter(fileName));
-            outStream.write(message);
-        } catch (IOException io) {
-            io.printStackTrace();
-        } finally {
-            if (outStream != null) {
-                try {
-                    outStream.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-    }*/
 }

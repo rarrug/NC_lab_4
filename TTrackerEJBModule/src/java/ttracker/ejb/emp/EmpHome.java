@@ -14,6 +14,6 @@ public interface EmpHome extends EJBHome {
     public Emp findByPrimaryKey(Integer id) throws FinderException, RemoteException;
     
     /* Find all employees */
-    public Collection findAll() throws FinderException, RemoteException;
+    public Collection<Emp> findAll() throws FinderException, RemoteException;
 
 }

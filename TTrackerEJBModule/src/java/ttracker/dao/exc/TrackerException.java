@@ -1,18 +1,21 @@
 package ttracker.dao.exc;
 
-
 public class TrackerException extends Exception {
-    
-    private String message;
-    
-    public TrackerException() {        
+
+    public TrackerException() {
+        super();
     }
-    
+
     public TrackerException(String message) {
-        this.message = message;
+        super(message);
     }
-    
-    public String getMessage() {
-        return message;
+
+    public TrackerException(Throwable exc) {
+        super(exc);
     }
+
+    public TrackerException(String message, Throwable exc) {
+        super(message, exc);
+    }
+
 }

@@ -1,4 +1,4 @@
-package ttracker.ejb.emp;
+package ttracker.ejb.dept;
 
 import java.rmi.RemoteException;
 import java.sql.Connection;
@@ -17,16 +17,14 @@ import javax.sql.DataSource;
 import ttracker.dao.SQLConsts;
 
 /**
- * Employee bean implementation.
+ * Dept bean implementation.
  */
-public class EmpBean implements EntityBean {
+public class DeptBean implements EntityBean {
 
     /* Bean attributes */
     private EntityContext context;
     private Integer id;
     private String name;
-    private String job;
-    private Integer dept;
 
     public String getName() {
         return name;
@@ -36,21 +34,17 @@ public class EmpBean implements EntityBean {
         this.name = name;
     }
 
-    public String getJob() {
-        return job;
-    }
-
     public Integer getId() {
         return id;
     }
 
-    public Integer getDeptId() {
-        return dept;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     /**
-     * Find all employees
-     * @return List of employee keys
+     * Find all depts
+     * @return List of depts keys
      * @throws FinderException 
      */
     public Collection<Integer> ejbFindAll() throws FinderException {
@@ -60,30 +54,30 @@ public class EmpBean implements EntityBean {
         ResultSet rs = null;
         try {
             con = getConnection();
-            st = con.prepareStatement(SQLConsts.GET_EMP_KEYS);
+            st = con.prepareStatement(SQLConsts.GET_DEPT_KEYS);
             rs = st.executeQuery();
             Collection list = new ArrayList();
             while (rs.next()) {
-                list.add(new Integer(rs.getInt("id_emp")));
+                list.add(new Integer(rs.getInt("id_dept")));
             }
             return list;
         } catch (SQLException ex) {
-            throw new FinderException("No employee was found: " + ex.getMessage());
+            throw new FinderException("No dept was found: " + ex.getMessage());
         } finally {
             //free connection resources
             try {
                 releaseConnection(rs, st, con);
             } catch (SQLException ex) {
-                throw new FinderException("No employee was found. Cannot free resources: " + ex.getMessage());
+                throw new FinderException("No dept was found. Cannot free resources: " + ex.getMessage());
             }
         }
     }
 
     /**
-     * Find employee by id
-     * @param id Employee id
-     * @return Employee primary key
-     * @throws FinderException Cannot find employee
+     * Find dept by id
+     * @param id Dept id
+     * @return Dept primary key
+     * @throws FinderException Cannot find dept
      */
     public Integer ejbFindByPrimaryKey(Integer id) throws FinderException {
 //        System.out.println("ejbFindByPrimaryKey()");
@@ -92,22 +86,22 @@ public class EmpBean implements EntityBean {
         ResultSet rs = null;
         try {
             con = getConnection();
-            st = con.prepareStatement(SQLConsts.EXISTS_EMP);
+            st = con.prepareStatement(SQLConsts.EXISTS_DEPT);
             st.setInt(1, id.intValue());
             rs = st.executeQuery();
             if (!rs.next()) {
-                throw new FinderException("No employee was found. Id = " + id);
+                throw new FinderException("No dept was found. Id = " + id);
             }
             this.id = id;
             return id;
         } catch (SQLException e) {
-            throw new FinderException("SQL error while getting employee: " + e);
+            throw new FinderException("SQL error while getting dept: " + e);
         } finally {
             //free connection resources
             try {
                 releaseConnection(rs, st, con);
             } catch (SQLException ex) {
-                throw new FinderException("No employee was found. Cannot free resources: " + ex.getMessage());
+                throw new FinderException("No dept was found. Cannot free resources: " + ex.getMessage());
             }
         }
 
@@ -115,7 +109,7 @@ public class EmpBean implements EntityBean {
 
     public void ejbStore() throws EJBException, RemoteException {
 //        System.out.println("ejbStore()");
-        //TODO ejbStore EmpBean
+        //TODO ejbStore DeptBean
     }
 
     public void ejbLoad() throws EJBException, RemoteException {
@@ -125,23 +119,21 @@ public class EmpBean implements EntityBean {
         ResultSet rs = null;
         try {
             con = getConnection();
-            st = con.prepareStatement(SQLConsts.EMP_INFO_BY_ID);
-            st.setInt(1, id.intValue());
+            st = con.prepareStatement(SQLConsts.DEPT_INFO_BY_ID);
+            st.setInt(1, this.id.intValue());
             rs = st.executeQuery();
             if (!rs.next()) {
                 throw new NoSuchEntityException("In selectRow: Row does not exist");
             }
-            this.name = rs.getString("emp_fio");
-            this.job = rs.getString("job");
-            this.dept = rs.getInt("dept");
+            this.name = rs.getString("DEPT_NAME");
         } catch (SQLException ex) {
-            throw new RemoteException("Cannot load employee: " + ex.getMessage(), ex);
+            throw new RemoteException("Cannot load dept", ex);
         } finally {
             //free connection resources
             try {
                 releaseConnection(rs, st, con);
             } catch (SQLException ex) {
-                throw new RemoteException("Cannot load employee. Cannot free resources", ex);
+                throw new RemoteException("Cannot load dept. Cannot free resources", ex);
             }
         }
     }

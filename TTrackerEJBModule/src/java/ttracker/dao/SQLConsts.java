@@ -2,10 +2,11 @@ package ttracker.dao;
 
 public class SQLConsts {
 
-    /* Connect propepties */
+    /* Connect properties */
     public static final String DB_NAME = "multTTrTest1";
     public static final String JNDI_TASK = "TrackerTask";
     public static final String JNDI_EMP = "TrackerEmp";
+    public static final String JNDI_DEPT = "TrackerDept";
     /* TASK SQL */
     public static final String EXISTS_TASK = "select ID_TASK from TASK where ID_TASK = ?";
     public static final String SELECT_TASK_BY_ID = "select * from TASK T, EMPLOYEE E, DEPARTMENT D where T.ID_TASK = ?"
@@ -26,7 +27,10 @@ public class SQLConsts {
     public static String GET_TASK_ID_BY_NAME = "select id_task from task where task_name = ?";
     /* EMPLOYEE SQL */
     public static final String EXISTS_EMP = "select ID_EMP from EMPLOYEE where ID_EMP = ?";
-    public static String EMP_INFO_BY_ID = "select * from EMPLOYEE E, DEPARTMENT D where E.ID_EMP = ?"
-            + " and E.DEPT = D.ID_DEPT";
+    public static final String EXISTS_DEPT = "select ID_DEPT from DEPARTMENT where ID_DEPT = ?";
+    public static String EMP_INFO_BY_ID = "select * from EMPLOYEE E where E.ID_EMP = ?";
+    public static String DEPT_INFO_BY_ID = "select * from DEPARTMENT D where D.ID_DEPT = ?";
+
     public static final String GET_EMP_KEYS = "select ID_EMP from EMPLOYEE";
+    public static final String GET_DEPT_KEYS = "select ID_DEPT from DEPARTMENT";
 }

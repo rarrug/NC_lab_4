@@ -21,13 +21,13 @@ public interface TaskHome extends EJBHome {
     public Task findByPrimaryKey(Integer id) throws FinderException, RemoteException;
 
     /* Find tasks by name */
-    public Collection findByName(String name) throws FinderException, RemoteException;
+    public Collection<Task> findByName(String name) throws FinderException, RemoteException;
     
     /* Find tasks by employee */
-    public Collection findByEmp(String emp) throws FinderException, RemoteException;
+    public Collection<Task> findByEmp(String emp) throws FinderException, RemoteException;
 
     /* Find all tasks */
-    public Collection findAll(boolean hier) throws FinderException, RemoteException;
+    public Collection<Task> findAll(boolean hier) throws FinderException, RemoteException;
 
     /* Create task */
     public Task create(TaskRecord task) throws CreateException, RemoteException;

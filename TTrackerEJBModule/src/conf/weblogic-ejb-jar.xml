@@ -29,4 +29,17 @@
         <reference-descriptor></reference-descriptor>
         <jndi-name>TrackerEmp</jndi-name>
     </weblogic-enterprise-bean>
+    <weblogic-enterprise-bean>
+        <ejb-name>Dept</ejb-name>
+        <entity-descriptor>
+            <entity-cache>
+                <idle-timeout-seconds>30</idle-timeout-seconds>
+            </entity-cache>
+        </entity-descriptor>
+        <transaction-descriptor>
+            <trans-timeout-seconds>300</trans-timeout-seconds>
+        </transaction-descriptor>
+        <reference-descriptor></reference-descriptor>
+        <jndi-name>TrackerDept</jndi-name>
+    </weblogic-enterprise-bean>
 </weblogic-ejb-jar>

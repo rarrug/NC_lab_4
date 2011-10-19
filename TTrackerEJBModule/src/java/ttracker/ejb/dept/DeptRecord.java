@@ -21,11 +21,11 @@ public class DeptRecord {
         this.deptId = deptId;
     }
 
-    public String getDeptName() {
+    public String getName() {
         return deptName;
     }
 
-    public void setDeptName(String deptName) {
+    public void setName(String deptName) {
         this.deptName = deptName;
     }
 }

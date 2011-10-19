@@ -1,12 +1,15 @@
 package ttracker.dao;
 
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import javax.naming.NamingException;
 import java.util.Collection;
 import javax.ejb.FinderException;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import ttracker.dao.exc.TrackerException;
+import ttracker.ejb.dept.Dept;
+import ttracker.ejb.dept.DeptHome;
 import ttracker.ejb.emp.Emp;
 import ttracker.ejb.emp.EmpHome;
 import ttracker.ejb.task.Task;
@@ -20,21 +23,20 @@ public class DBModel implements IModel {
 
     private TaskHome taskHome;
     private EmpHome empHome;
+    private DeptHome deptHome;
 
-    public DBModel() {
-        try {
-            /* initialize task home and emp home contexts */
-            Context initial = new InitialContext();
-            Object objRef = initial.lookup(SQLConsts.JNDI_TASK);
-            taskHome = (TaskHome) javax.rmi.PortableRemoteObject.narrow(
-                    objRef, TaskHome.class);
-            objRef = initial.lookup(SQLConsts.JNDI_EMP);
-            empHome = (EmpHome) javax.rmi.PortableRemoteObject.narrow(
-                    objRef, EmpHome.class);
-        } catch (NamingException ex) {
-            //TODO delete stack trace
-            ex.printStackTrace();
-        }
+    public DBModel() throws NamingException {
+        /* initialize task home and emp home contexts */
+        Context initial = new InitialContext();
+        Object objRef = initial.lookup(SQLConsts.JNDI_TASK);
+        taskHome = (TaskHome) javax.rmi.PortableRemoteObject.narrow(
+                objRef, TaskHome.class);
+        objRef = initial.lookup(SQLConsts.JNDI_EMP);
+        empHome = (EmpHome) javax.rmi.PortableRemoteObject.narrow(
+                objRef, EmpHome.class);
+        objRef = initial.lookup(SQLConsts.JNDI_DEPT);
+        deptHome = (DeptHome) javax.rmi.PortableRemoteObject.narrow(
+                objRef, DeptHome.class);
     }
 
     /**
@@ -42,11 +44,12 @@ public class DBModel implements IModel {
      * @param taskId Task number
      * @return Task with identificator id
      */
-    public Task getTaskById(Integer taskId) throws TrackerException {
+    public Info getTaskById(Integer taskId) throws TrackerException {
         try {
-            return taskHome.findByPrimaryKey(taskId);
+            Task task = taskHome.findByPrimaryKey(taskId);
+            return getInfo(task);
         } catch (Exception ex) {
-            throw new TrackerException("Cannot get task by id: " + ex.getMessage());
+            throw new TrackerException("Cannot get task by id", ex);
         }
     }
 
@@ -56,14 +59,18 @@ public class DBModel implements IModel {
      * @param sql SQL query
      * @return
      */
-    private Collection getTaskByParam(String param, String sql) throws FinderException, RemoteException {
-        Collection list = null;
+    private Collection<Info> getTaskByParam(String param, String sql) throws FinderException, RemoteException {
+        Collection<Task> taskLists = null;
         if (sql.equals(SQLConsts.SELECT_TASK_BY_NAME)) {
-            list = taskHome.findByName(param);
+            taskLists = taskHome.findByName(param);
         } else if (sql.equals(SQLConsts.SELECT_TASK_BY_EMP)) {
-            list = taskHome.findByEmp(param);
+            taskLists = taskHome.findByEmp(param);
         }
-        return list;
+        Collection<Info> tasks = new ArrayList<Info>();
+        for (Task task : taskLists) {
+            tasks.add(getInfo(task));
+        }
+        return tasks;
     }
 
     /**
@@ -71,11 +78,11 @@ public class DBModel implements IModel {
      * @param tName Task name
      * @return List of tasks with name - tName
      */
-    public Collection getTaskByName(String tName) throws TrackerException {
+    public Collection<Info> getTaskByName(String tName) throws TrackerException {
         try {
             return getTaskByParam(tName, SQLConsts.SELECT_TASK_BY_NAME);
         } catch (Exception ex) {
-            throw new TrackerException("Cannot get task by name: " + ex.getMessage());
+            throw new TrackerException("Cannot get task by name", ex);
         }
     }
 
@@ -84,11 +91,11 @@ public class DBModel implements IModel {
      * @param eName Employee name
      * @return List of tasks with employee name - eName
      */
-    public Collection getTaskByEmp(String eName) throws TrackerException {
+    public Collection<Info> getTaskByEmp(String eName) throws TrackerException {
         try {
             return getTaskByParam(eName, SQLConsts.SELECT_TASK_BY_EMP);
         } catch (Exception ex) {
-            throw new TrackerException("Cannot get task by emp name: " + ex.getMessage());
+            throw new TrackerException("Cannot get task by emp name", ex);
         }
     }
 
@@ -97,12 +104,53 @@ public class DBModel implements IModel {
      * @param hier true if need hierarchical list or false another
      * @return Task list
      */
-    public Collection getAllTasks(boolean hier) throws TrackerException {
+    public Collection<Info> getAllTasks(boolean hier) throws TrackerException {
         try {
-            return taskHome.findAll(hier);
+            Collection<Info> tvc = new ArrayList<Info>();
+            for (Task task : taskHome.findAll(hier)) {
+                tvc.add(getInfo(task));
+            }
+            return tvc;
         } catch (Exception ex) {
-            throw new TrackerException("Cannot get task list: " + ex.getMessage());
+            throw new TrackerException("Cannot get task list: " + ex.getMessage(), ex);
         }
+    }
+
+    /**
+     * Get info about task uncluding employee and dept info
+     * @param task Task object
+     * @return General information element
+     * @throws FinderException
+     * @throws RemoteException
+     */
+    private Info getInfo(Task task) throws FinderException, RemoteException {
+
+        Emp emp = empHome.findByPrimaryKey(task.getEmpId());
+        Dept dept = deptHome.findByPrimaryKey(emp.getDeptId());
+
+        Info taskValue = new Info();
+        taskValue.setTask(task);
+        taskValue.setEmp(emp);
+        taskValue.setDept(dept);
+
+        return taskValue;
+    }
+
+    /**
+     * Get info about employee uncluding dept info
+     * @param emp Employee object
+     * @return General information element
+     * @throws FinderException
+     * @throws RemoteException
+     */
+    private Info getInfo(Emp emp) throws FinderException, RemoteException {
+        Dept dept = deptHome.findByPrimaryKey(emp.getDeptId());
+
+        Info taskValue = new Info();
+        taskValue.setEmp(emp);
+        taskValue.setDept(dept);
+
+        return taskValue;
     }
 
     /**
@@ -113,7 +161,7 @@ public class DBModel implements IModel {
         try {
             taskHome.create(newTask);
         } catch (Exception ex) {
-            throw new TrackerException("Cannot add task: " + ex.getMessage());
+            throw new TrackerException("Cannot add task", ex);
         }
     }
 
@@ -125,7 +173,7 @@ public class DBModel implements IModel {
         try {
             taskHome.findByPrimaryKey(taskId).remove();
         } catch (Exception ex) {
-            throw new TrackerException("Cannot delete task: " + ex.getMessage());
+            throw new TrackerException("Cannot delete task", ex);
         }
     }
 
@@ -137,7 +185,7 @@ public class DBModel implements IModel {
         try {
             taskHome.modify(task);
         } catch (RemoteException ex) {
-            throw new TrackerException("Cannot modify task: " + ex.getMessage());
+            throw new TrackerException("Cannot modify task", ex);
         }
     }
 
@@ -146,12 +194,12 @@ public class DBModel implements IModel {
      * @param empId Employee number
      * @return Employee object
      */
-    //TODO getEmpById
-    public Emp getEmpById(Integer empId) throws TrackerException {
+    public Info getEmpById(Integer empId) throws TrackerException {
         try {
-            return empHome.findByPrimaryKey(empId);
+            Emp emp = empHome.findByPrimaryKey(empId);
+            return getInfo(emp);
         } catch (Exception ex) {
-            throw new TrackerException("Cannot get employee by id: " + ex.getMessage());
+            throw new TrackerException("Cannot get employee by id", ex);
         }
     }
 
@@ -159,11 +207,15 @@ public class DBModel implements IModel {
      * Get employee list
      * @return List of employee
      */
-    public Collection getAllEmps() throws TrackerException {
+    public Collection<Info> getAllEmps() throws TrackerException {
         try {
-            return empHome.findAll();
+            Collection<Info> emps = new ArrayList<Info>();
+            for (Emp emp : empHome.findAll()) {
+                emps.add(getInfo(emp));
+            }
+            return emps;
         } catch (Exception ex) {
-            throw new TrackerException("Cannot get employee list: " + ex.getMessage());
+            throw new TrackerException("Cannot get employee list", ex);
         }
     }
 }

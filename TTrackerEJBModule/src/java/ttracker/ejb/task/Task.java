@@ -23,7 +23,5 @@ public interface Task extends EJBObject {
 
     public String getDescription() throws RemoteException;
 
-    public String getDeptName() throws RemoteException;
-
-    public String getEmp() throws RemoteException;
+    public Integer getEmpId() throws RemoteException;
 }
