@@ -13,17 +13,17 @@
         <form action="modifytask.perform" method="post">
 
             <div class="modify-block-label">ID:</div>
-            <input type="text" name="modifyId" value="${modifyTask.task.id}" readonly/>
+            <input type="text" name="modifyId" value="${modifyTask.taskId}" readonly/>
 
             <br/>
             <div class="modify-block-label">Name:</div>
-            <input type="text" name="modifyName" value="${modifyTask.task.name}"/>
+            <input type="text" name="modifyName" value="${modifyTask.taskName}"/>
 
             <br/>
             <div class="modify-block-label">Parent:</div>
             <select name="modifyParent">
                 <c:choose>
-                    <c:when test="${modifyTask.task.id eq 0}">
+                    <c:when test="${modifyTask.taskId eq 0}">
                         <option value="0" selected>no</option>
                     </c:when>
                     <c:otherwise>
@@ -32,20 +32,20 @@
                 </c:choose>
 
                 <c:forEach items="${taskList}" var="parentTask">
-                    <c:if test="${parentTask.task.id ne modifyTask.task.id}">
+                    <c:if test="${parentTask.taskId ne modifyTask.taskId}">
                         <c:choose>
-                            <c:when test="${parentTask.task.id eq modifyTask.task.parentId}">
-                                <option value="${parentTask.task.id}" selected>
-                                    ${parentTask.task.id}
+                            <c:when test="${parentTask.taskId eq modifyTask.taskParentId}">
+                                <option value="${parentTask.taskId}" selected>
+                                    ${parentTask.taskId}
                                     <c:out value=" - " />
-                                    ${parentTask.task.name}
+                                    ${parentTask.taskName}
                                 </option>
                             </c:when>
                             <c:otherwise>
-                                <option value="${parentTask.task.id}">
-                                    ${parentTask.task.id}
+                                <option value="${parentTask.taskId}">
+                                    ${parentTask.taskId}
                                     <c:out value=" - " />
-                                    ${parentTask.task.name}
+                                    ${parentTask.taskName}
                                 </option>
                             </c:otherwise>
                         </c:choose>
@@ -58,11 +58,11 @@
             <select name="modifyUser">
                 <c:forEach items="${userList}" var="userInfo">
                     <c:choose>
-                        <c:when test="${userInfo.emp.name eq modifyTask.emp.name}">
-                            <option value="${userInfo.emp.name}" selected>${userInfo.emp.name}</option>
+                        <c:when test="${userInfo.empName eq modifyTask.empName}">
+                            <option value="${userInfo.empName}" selected>${userInfo.empName}</option>
                         </c:when>
                         <c:otherwise>
-                            <option value="${userInfo.emp.name}">${userInfo.emp.name}</option>
+                            <option value="${userInfo.empName}">${userInfo.empName}</option>
                         </c:otherwise>
                     </c:choose>
                 </c:forEach>
@@ -70,13 +70,13 @@
 
             <br/>
             <div class="modify-block-label">Begin:</div>
-            <input type="text" name="modifyBegin" value="${modifyTask.task.begin}" id="calendarBeginM" readonly="true"/>
+            <input type="text" name="modifyBegin" value="${modifyTask.taskBegin}" id="calendarBeginM" readonly="true"/>
 
             <div id="cCallbackBeginM" class="select-free"></div>
 
             <br/>
             <div class="modify-block-label">End:</div>
-            <input type="text" name="modifyEnd" value="${modifyTask.task.end}" id="calendarEndM" readonly="true"/>
+            <input type="text" name="modifyEnd" value="${modifyTask.taskEnd}" id="calendarEndM" readonly="true"/>
 
             <div id="cCallbackEndM" class="select-free"></div>
 
@@ -84,7 +84,7 @@
             <div class="modify-block-label">Status:</div>
             <select name="modifyStatus">
                 <c:choose>
-                    <c:when test='${"open" eq modifyTask.task.status}'>
+                    <c:when test='${"open" eq modifyTask.taskStatus}'>
                         <option value="open" selected>open</option>
                     </c:when>
                     <c:otherwise>
@@ -92,7 +92,7 @@
                     </c:otherwise>
                 </c:choose>
                 <c:choose>
-                    <c:when test='${"process" eq modifyTask.task.status}'>
+                    <c:when test='${"process" eq modifyTask.taskStatus}'>
                         <option value="process" selected>process</option>
                     </c:when>
                     <c:otherwise>
@@ -100,7 +100,7 @@
                     </c:otherwise>
                 </c:choose>
                 <c:choose>
-                    <c:when test='${"close" eq modifyTask.task.status}'>
+                    <c:when test='${"close" eq modifyTask.taskStatus}'>
                         <option value="close" selected>close</option>
                     </c:when>
                     <c:otherwise>
@@ -112,7 +112,7 @@
             <br style="float:none;"/>
             <div class="modify-block-label">Description:</div>
             <br style="float:none;"/>
-            <textarea name="modifyDescription">${modifyTask.task.description}</textarea>
+            <textarea name="modifyDescription">${modifyTask.taskDescription}</textarea>
 
             <br/>
             <input type="submit" name="taskModify" value="Modify" id="modifyButton"/>

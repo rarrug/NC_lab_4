@@ -53,14 +53,14 @@
                 if (index == 0) {
                     classOpen = " class=\"open\"";
                 }
-                String descr = taskInfo.getTask().getDescription();
+                String descr = taskInfo.getTaskDescription();
                 if (descr == null) {
                     descr = "&lt;empty desrc&gt;";
                 } else if (descr.length() > 30) {
                     descr = descr.substring(0, 30) + "...";
                 }
                 String item = (s + "<li id=\'" + (index + 2) + "\'" + classOpen
-                        + "><span>" + taskInfo.getTask().getId() + " - " + taskInfo.getTask().getName()
+                        + "><span>" + taskInfo.getTaskId() + " - " + taskInfo.getTaskName()
                         + " - " + descr + "</span>");
                 listBuilder.append(item).append("\n");
                 flag = false;
@@ -69,7 +69,7 @@
                 break;
             }
             Info child = (Info) list.get(index + 1);
-            if (child != null && taskInfo.getTask().getId().compareTo(child.getTask().getParentId()) == 0) {
+            if (child != null && taskInfo.getTaskId().compareTo(child.getTaskParentId()) == 0) {
                 index++;
                 printHierarchyNode(child, list, "");
             } else {

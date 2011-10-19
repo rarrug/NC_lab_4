@@ -15,7 +15,7 @@
             <select name="taskParent">
                 <option value="0">no</option>
                 <c:forEach items="${taskList}" var="parentInfo">
-                    <option value="${parentInfo.task.id}">${parentInfo.task.name}</option>
+                    <option value="${parentInfo.taskId}">${parentInfo.taskName}</option>
                 </c:forEach>
             </select>
 
@@ -23,7 +23,7 @@
             <div class="add-block-label">User:</div>
             <select name="taskUser">
                 <c:forEach items="${userList}" var="userInfo">
-                    <option value="${userInfo.emp.name}">${userInfo.emp.name}</option>
+                    <option value="${userInfo.empName}">${userInfo.empName}</option>
                 </c:forEach>
             </select>
 

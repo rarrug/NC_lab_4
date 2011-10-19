@@ -146,45 +146,45 @@
 
                             <!-- output row table with parameters of each task -->
 
-                            <c:forEach items="${taskList}" var="currInfoElement">
+                            <c:forEach items="${taskList}" var="currTaskInfo">
                                 <tr>
                                     <td width="100px">
                                         <div id='basic-modal'>
-                                            <a href="index.jsp?taskid=${currInfoElement.task.id}" class="basic-modify" title="Modify">
+                                            <a href="index.jsp?taskid=${currTaskInfo.taskId}" class="basic-modify" title="Modify">
                                                 <img src="im/modify.png" alt="Modify"/>
                                             </a>
                                         </div>
                                     </td>
 
-                                    <td width="100px">${currInfoElement.task.id}</td>
-                                    <td width="100px">${currInfoElement.task.name}</td>
+                                    <td width="100px">${currTaskInfo.taskId}</td>
+                                    <td width="100px">${currTaskInfo.taskName}</td>
 
                                     <c:choose>
-                                        <c:when test="${currInfoElement.task.parentId eq 0}">
+                                        <c:when test="${currTaskInfo.taskParentId eq 0}">
                                             <td width="100px">no</td>
                                         </c:when>
                                         <c:otherwise>
-                                            <td width="100px">${currInfoElement.task.parentId}</td>
+                                            <td width="100px">${currTaskInfo.taskParentId}</td>
                                         </c:otherwise>
                                     </c:choose>
 
-                                    <td width="110px">${currInfoElement.task.begin}</td>
-                                    <td width="110px">${currInfoElement.task.end}</td>
-                                    <td width="110px">${currInfoElement.task.status}</td>
-                                    <td width="100px">${currInfoElement.emp.name}</td>
-                                    <td width="100px">${currInfoElement.dept.name}</td>
+                                    <td width="110px">${currTaskInfo.taskBegin}</td>
+                                    <td width="110px">${currTaskInfo.taskEnd}</td>
+                                    <td width="110px">${currTaskInfo.taskStatus}</td>
+                                    <td width="100px">${currTaskInfo.empName}</td>
+                                    <td width="100px">${currTaskInfo.deptName}</td>
 
                                     <c:choose>
-                                        <c:when test="${currInfoElement.task.description eq null}">
+                                        <c:when test="${currTaskInfo.taskDescription eq null}">
                                             <td width="120px"> - </td>
                                         </c:when>
                                         <c:otherwise>
-                                            <td width="120px">${currInfoElement.task.description}</td>
+                                            <td width="120px">${currTaskInfo.taskDescription}</td>
                                         </c:otherwise>
                                     </c:choose>
 
                                     <td width="50px" align="center" id='confirm-dialog'>
-                                        <a href="${currInfoElement.task.id}" class='confirm' title="Delete">
+                                        <a href="${currTaskInfo.taskId}" class='confirm' title="Delete">
                                             <img src="im/delete.png" alt="Delete"/>
                                         </a>
                                     </td>
